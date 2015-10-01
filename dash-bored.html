@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>DashBored!</title>
+    <script src="https://fb.me/react-with-addons-0.13.3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <div id="content"></div>
+    <script type="text/babel">
+      var topstories = [];
+      var stories = [];
+      var A_storie = React.createClass({
+        render: function() {
+          return (
+            <div className="storie" id={this.props.key}>
+              <a href={this.props.url} className="storieTitle">
+                <h2>
+                  {this.props.title}
+                </h2>
+              </a>
+              <div className="storieAuthor">
+              <span className="by">by</span> : <span className="pseudo">{this.props.by}</span>
+              </div>
+            </div>
+          );
+        }
+      });
+
+      var A_storie_List = React.createClass({
+        render: function() {
+          var storieNodes = this.props.data.map(function (s, key) {
+            return (
+              <A_storie title={s.title} by={s.by} url={s.url} key={key}/>
+            );
+          });
+          return (
+            <div className="storieList">
+              {storieNodes}
+            </div>
+          );
+        }
+      });
+
+      var StorieBox = React.createClass({
+       loadStorieDetails: function(idStorie) {
+          $.ajax({
+            url: this.props.urlDetail.concat(idStorie).concat(".json"),
+            dataType: 'json',
+            type:'GET',
+            cache: true,
+            success: function(storie) {
+              stories.push(storie);
+              this.setState({stories: stories});
+            }.bind(this),
+            error: function(xhr, status, err) {
+              console.error(this.props.urlDetail, status, err.toString());
+            }.bind(this)
+          });
+        },
+        loadHNTopStories : function() {
+          $.ajax({
+            url: this.props.urlTop,
+            dataType: 'json',
+            type:'GET',
+            cache: true,
+            success: function(topstories) {
+              for (var i = 0; i < 15 ; i++) {
+                this.loadStorieDetails(topstories[i]);
+              }
+              this.setState({topstories: topstories});
+            }.bind(this),
+            error: function(xhr, status, err) {
+              console.error(this.props.urlTop, status, err.toString());
+            }.bind(this)
+          });
+        },
+        getInitialState: function() {
+          return {
+            topstories: [],
+            stories: []
+          };
+        },
+        componentDidMount: function() {
+          this.loadHNTopStories();
+// si on veux appeler avec un interval pour faire du realtime
+// mais faut pas deconner non plus c'est HN pas reuters
+// setInterval(this.loadCommentsFromServer, interval);
+        },
+        render: function() {
+          return (
+            <div className="storieBox">
+              <h1>HN Top Storie</h1>
+              <A_storie_List data={this.state.stories} />
+            </div>
+          );
+        }
+      });
+
+
+
+      React.render(
+        <StorieBox 
+        urlTop="https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty" urlDetail="https://hacker-news.firebaseio.com/v0/item/" />,
+        document.getElementById('content')
+      );
+    </script>
+  </body>
+</html>
