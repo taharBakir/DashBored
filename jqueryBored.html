@@ -1,223 +1,263 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css"
-<meta name="viewport" content="width=device-width, initial-scale=1">
- <!-- Custom CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-<link href="css/stylish-portfolio.css" rel="stylesheet">
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic"
+          rel="stylesheet" type="text/css"
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href="css/stylish-portfolio.css" rel="stylesheet">
+    <link href="css/responsive.css" rel="stylesheet">
     <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-<!-- Bootstrap Core JavaScript -->
-<script src="js/bootstrap.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
 
-<script>
-$(document).ready(function(){
+    <script>
+        $(document).ready(function () {
 
-	function cleanBox(){
-		$('#hackerNewsBox').empty();
-		$('#stackOverflowBox').empty();
-	};
+            var loading = document.getElementById('loading');
 
+            var cleanBox = function () {
+                $('#hackerNewsBox').empty();
+                $('#stackOverflowBox').empty();
+            };
 
+            // Closes the sidebar menu
+            $("#menu-close").click(function (e) {
+                e.preventDefault();
+                $("#sidebar-wrapper").toggleClass("active");
+            });
 
-    // Closes the sidebar menu
-    $("#menu-close").click(function(e) {
-        e.preventDefault();
-        $("#sidebar-wrapper").toggleClass("active");
-    });
+            // Opens the sidebar menu
+            $("#menu-toggle").click(function (e) {
+                e.preventDefault();
+                $("#sidebar-wrapper").toggleClass("active");
+            });
 
-    // Opens the sidebar menu
-    $("#menu-toggle").click(function(e) {
-        e.preventDefault();
-        $("#sidebar-wrapper").toggleClass("active");
-    });
+            $('#hackerNews').click(function () {
+                $(loading).addClass('active');
 
-	$('#hackerNews').click(function(){
-		cleanBox();
-		var urlTop=$(this).attr('urlTop');
-		var urlDetail=$(this).attr('urlDetail');
-		var nbStories = parseInt($(this).attr('nbStories')); 
+                cleanBox();
 
-		var topstories = jQuery.parseJSON( getURL(urlTop) );
+                var urlTop = $(this).attr('urlTop'),
+                        urlDetail = $(this).attr('urlDetail'),
+                        nbStories = parseInt($(this).attr('nbStories'), 10),
+                        topstories,
+                        storieDetails;
 
-		for (var i = 0; i < nbStories ; i++) {
-			var storieDetails = jQuery.parseJSON(
-					getURL(
-						urlDetail.concat(topstories[i]).concat(".json")
-					)
-				)
-			showTopStories(storieDetails.url,
-				storieDetails.title,
-				storieDetails.by,
-				"#hackerNewsBox",
-				i
-			);
-		}
-	});
+                var getTopStories = (function () {
+                    getURL(urlTop).success(function (data) {
+                        topstories = data;
 
-	$('#stackOverflow').click(function(){
-		cleanBox();
-		var urlTop=$(this).attr('urlTop');	
-		var nbquestions = parseInt($(this).attr('nbquestions'));
+                        for (var i = 0; i < nbStories; i++) {
+                            getStoriesDetails(i);
+                        }
+                    });
+                })();
 
-		var topstories = jQuery.parseJSON( getURL(urlTop.concat("&pagesize=").concat(nbquestions)) );
+                var getStoriesDetails = function (i) {
+                    var url = urlDetail.concat(topstories[i]).concat(".json");
 
-		for (var i = 0; i < topstories.items.length ; i++) {
-			showTopStories(topstories.items[i].link,
-				topstories.items[i].title,
-				topstories.items[i].owner.display_name,
-				"#stackOverflowBox",
-				i
-			);
-		}
-	});
+                    getURL(url).success(function (data) {
+                        storieDetails = data;
 
-	function getURL(url){
-	    return $.ajax({
-	        type: "GET",
-	        url: url,
-	        cache: true,
-	        async: false
-	    }).responseText;
-	};
+                        if (i === nbStories - 1) {
+                            var callback = function () {
+                                $(loading).removeClass('active');
+                            };
+                        }
 
-	function showTopStories(storieUrl,storieTitle,storieAuthor,box,idStorie){
+                        showTopStories(storieDetails.url, storieDetails.title, storieDetails.by, "#hackerNewsBox", i, callback);
+                    });
+                };
+            });
 
-		$(box).append($("\
-			<div class='storie' id='"+idStorie+"'>\
-			  <a href='"+storieUrl+"' class='storieTitle'>\
-			    <h2>\
-			      "+storieTitle+"\
-			    </h2>\
-			  </a>\
-			  <div class='storieAuthor'>\
-			  <span class='by'>by</span> : \
-			  <span class='pseudo'>"+storieAuthor+"\
-			  </span>\
-			  </div>\
-			</div>\
-			"
-		).hide().delay( 50*idStorie ).fadeIn( 400*idStorie ));
+            $('#stackOverflow').click(function () {
+                $(loading).addClass('active');
 
+                cleanBox();
 
-	}
-	
-});
-</script>
+                var nbquestions = parseInt($(this).attr('nbquestions'), 10),
+                        urlTop = $(this).attr('urlTop'),
+                        url = urlTop.concat("&pagesize=").concat(nbquestions),
+                        topstories;
+
+                var getTopStories = (function () {
+                    getURL(url).success(function (data) {
+                        topstories = data;
+
+                        for (var i = 0; i < topstories.items.length; i++) {
+                            if (i === topstories.items.length - 1) {
+                                var callback = function () {
+                                    $(loading).removeClass('active');
+                                };
+                            }
+
+                            showTopStories(topstories.items[i].link, topstories.items[i].title, topstories.items[i].owner.display_name, "#stackOverflowBox", i, callback);
+                        }
+                    });
+                })();
+            });
+
+            var getURL = function (url) {
+                return $.ajax({
+                    type: "GET",
+                    dataType: "JSON",
+                    url: url,
+                    cache: true
+                });
+            };
+
+            var showTopStories = function (storieUrl, storieTitle, storieAuthor, box, idStorie, callback) {
+                var template = "<div class='storie' id='" + idStorie + "'>" +
+                        "<a href='" + storieUrl + "' class='storieTitle' title='" + storieTitle + "'>" +
+                        "<h2>" + storieTitle + "</h2>" +
+                        "</a>" +
+                        "<div class='storieAuthor'>" +
+                        "<span class='by'>by</span> : " +
+                        "<strong class='pseudo'>" + storieAuthor + "</strong>" +
+                        "</div>" +
+                        "</div>";
+
+                $(box).append($(template)
+                        .hide()
+                        .delay(100 * idStorie)
+                        .fadeIn(200 * idStorie, function () {
+                            if (typeof callback !== 'undefined') {
+                                callback();
+                            }
+                        }));
+            }
+        });
+    </script>
 </head>
 <body>
-    <!-- Navigation -->
-    <a id="menu-toggle" href="#" class="btn btn-dark btn-lg toggle"><i class="fa fa-bars"></i></a>
-    <nav id="sidebar-wrapper">
-        <ul class="sidebar-nav">
-            <a id="menu-close" href="#" class="btn btn-light btn-lg pull-right toggle"><i class="fa fa-times"></i></a>
-            <li class="sidebar-brand">
-                <a href="#top"  onclick = $("#menu-close").click(); >Top</a>
-            </li>
-            <li>
-                <a href="https://github.com/taharBakir" onclick = $("#menu-close").click(); >Compte github</a>
-            </li>
-            <li>
-                <a href="#" onclick = $("#menu-close").click(); >Configuration</a>
-            </li>
-        </ul>
-    </nav>
+<!-- Navigation -->
+<a id="menu-toggle" href="#" class="btn btn-dark btn-lg toggle"><i class="fa fa-bars"></i></a>
+<nav id="sidebar-wrapper">
+    <ul class="sidebar-nav">
+        <a id="menu-close" href="#" class="btn btn-light btn-lg pull-right toggle"><i class="fa fa-times"></i></a>
+        <li class="sidebar-brand">
+            <a href="#top" onclick=$("#menu-close").click();>Top</a>
+        </li>
+        <li>
+            <a href="https://github.com/taharBakir" onclick=$("#menu-close").click();>Compte github</a>
+        </li>
+        <li>
+            <a href="#" onclick=$("#menu-close").click();>Configuration</a>
+        </li>
+    </ul>
+</nav>
 
-    <!-- Header -->
-    <header id="top" class="header">
+<!-- Header -->
+<header id="top" class="header">
 
-    </header>
+</header>
 
-    <!-- Services -->
-    <!-- The circle icons use Font Awesome's stacked icon classes. For more information, visit http://fontawesome.io/examples/ -->
-    <section id="services" class="services bg-primary">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-lg-10 col-lg-offset-1">
-                    <h2>Available ressources</h2>
-                    <hr class="small">
-                    <div class="row">
-                        <div class="col-md-3 col-sm-6">
-                            <div class="service-item">
+<!-- Services -->
+<!-- The circle icons use Font Awesome's stacked icon classes. For more information, visit http://fontawesome.io/examples/ -->
+<section id="services" class="services bg-primary">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-lg-10 col-lg-offset-1">
+                <h2>Available ressources</h2>
+                <hr class="small">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="service-item">
                             <span class="fa-stack fa-4x">
-                            	<a id="hackerNews" href='#hackerNewsBox' nbStories="10" urlTop="https://hacker-news.firebaseio.com/v0/topstories.json" urlDetail="https://hacker-news.firebaseio.com/v0/item/">
-                            		<img style='height: 100px;' src="http://www.ycombinator.com/images/ycombinator-logo-fb889e2e.png"/>
-                            	</a>
+                            	<a id="hackerNews" href='#hackerNewsBox' nbStories="10"
+                                   urlTop="https://hacker-news.firebaseio.com/v0/topstories.json"
+                                   urlDetail="https://hacker-news.firebaseio.com/v0/item/">
+                                    <img style='height: 100px;'
+                                         src="http://www.ycombinator.com/images/ycombinator-logo-fb889e2e.png"/>
+                                </a>
                             </span>
-                                <h4>
-                                    <strong>Hacker News</strong>
-                                </h4>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="service-item">
-                            <span class="fa-stack fa-4x">
-                            	<a id="stackOverflow" href='#stackOverflowBox' nbquestions="10" urlTop="https://api.stackexchange.com/2.2/questions/no-answers?order=desc&sort=creation&tagged=java&site=stackoverflow"  style=' text-indent: -999em; display: block; width: 200px; height: 50px; background-image: url("http://cdn.sstatic.net/stackoverflow/img/sprites.svg?v=a7723f5f7e59"),none; background-position: top left; background-repeat: no-repeat; position: relative; top: 40px; left:-40px;'></a>
-                            </span>
-                                <h4>
-                                    <strong>Stack Overflow</strong>
-                                </h4>
-                            </div>
+                            <h4>
+                                <strong>Hacker News</strong>
+                            </h4>
                         </div>
                     </div>
-                    <!-- /.row (nested) -->
+                    <div class="col-md-3 col-sm-6">
+                        <div class="service-item">
+                            <span class="fa-stack fa-4x">
+                            	<a id="stackOverflow" href='#stackOverflowBox' nbquestions="10"
+                                   urlTop="https://api.stackexchange.com/2.2/questions/no-answers?order=desc&sort=creation&tagged=java&site=stackoverflow"
+                                   style=' text-indent: -999em; display: block; width: 200px; height: 50px; background-image: url("http://cdn.sstatic.net/stackoverflow/img/sprites.svg?v=a7723f5f7e59"),none; background-position: top left; background-repeat: no-repeat; position: relative; top: 40px; left:-40px;'></a>
+                            </span>
+                            <h4>
+                                <strong>Stack Overflow</strong>
+                            </h4>
+                        </div>
+                    </div>
                 </div>
-                <!-- /.col-lg-10 -->
+                <!-- /.row (nested) -->
             </div>
-            <!-- /.row -->
+            <!-- /.col-lg-10 -->
         </div>
-        <!-- /.container -->
-    </section>
+        <!-- /.row -->
+    </div>
+    <!-- /.container -->
+</section>
 
+<div class="container">
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1 text-center">
+            <div id="hackerNewsBox"></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1 text-center">
+            <div id="stackOverflowBox"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Footer -->
+<footer>
     <div class="container">
         <div class="row">
             <div class="col-lg-10 col-lg-offset-1 text-center">
-				<div id="hackerNewsBox"></div>
-			</div>
-		</div>
-	</div>
+                <br/>
+                <h4><strong>Dash Bored</strong>
+                </h4>
 
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-10 col-lg-offset-1 text-center">
-				<div id="stackOverflowBox"></div>
-			</div>
-		</div>
-	</div>
-
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-10 col-lg-offset-1 text-center">
-                	<br/>
-                    <h4><strong>Dash Bored</strong>
-                    </h4>
-                    <p>Paris</p>
-                    <ul class="list-unstyled">
-                        <li><i class="fa fa-phone fa-fw"></i> (+33) 602057064 </li>
-                        <li><i class="fa fa-envelope-o fa-fw"></i>  <a href="mailto:tahar.bakir@gmail.com">tahar.bakir@gmail.com</a>
-                        </li>
-                    </ul>
-                    <br>
-                    <ul class="list-inline">
-                        <li>
-                            <a href="#"><i class="fa fa-facebook fa-fw fa-3x"></i></a>
-                        </li>
-                        <li>
-                            <a href="#"><i class="fa fa-twitter fa-fw fa-3x"></i></a>
-                        </li>
-                        <li>
-                            <a href="#"><i class="fa fa-dribbble fa-fw fa-3x"></i></a>
-                        </li>
-                    </ul>
-                    <hr class="small">
-                    <p class="text-muted">Copyright &copy; Tahar Bakir</p>
-                </div>
+                <p>Paris</p>
+                <ul class="list-unstyled">
+                    <li><i class="fa fa-phone fa-fw"></i> (+33) 602057064</li>
+                    <li><i class="fa fa-envelope-o fa-fw"></i> <a href="mailto:tahar.bakir@gmail.com">tahar.bakir@gmail.com</a>
+                    </li>
+                </ul>
+                <br>
+                <ul class="list-inline">
+                    <li>
+                        <a href="#"><i class="fa fa-facebook fa-fw fa-3x"></i></a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa fa-twitter fa-fw fa-3x"></i></a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa fa-dribbble fa-fw fa-3x"></i></a>
+                    </li>
+                </ul>
+                <hr class="small">
+                <p class="text-muted">Copyright &copy; Tahar Bakir</p>
             </div>
         </div>
-    </footer>
+    </div>
+</footer>
+
+<!-- Loading -->
+<div id="loading">
+    <div class="loader">
+        <i class="fa fa-spinner fa-spin"></i>
+    </div>
+</div>
+
 </body>
 </html>
