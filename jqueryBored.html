@@ -12,6 +12,7 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
     <!-- Bootstrap Core JavaScript -->
     <script src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
     <script>
         $(document).ready(function () {
@@ -99,6 +100,37 @@
                     });
                 })();
             });
+
+            function parseRSS(url) {
+                return $.ajax({
+                    url: document.location.protocol + '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=10&callback=?&q=' + encodeURIComponent(url),
+                    dataType: 'json',
+                });
+            }
+
+            $('#dzoneJava').click(function(){
+                $(loading).addClass('active');
+
+                cleanBox();
+
+                var url=$(this).attr('url');
+
+                var getTopStories = (function () {
+                    parseRSS(url).success(function (data) {
+                        topstories = data.responseData.feed.entries;
+
+                        for (var i = 0; i < topstories.length; i++) {
+                            if (i === topstories.length - 1) {
+                                var callback = function () {
+                                    $(loading).removeClass('active');
+                                };
+                            }
+
+                            showTopStories(topstories[i].link, topstories[i].title, topstories[i].author, "#dzoneJavaBox", i, callback);
+                        }
+                    });
+                })();
+            }); 
 
             var getURL = function (url) {
                 return $.ajax({
@@ -191,6 +223,19 @@
                             </h4>
                         </div>
                     </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="service-item">
+                            <span class="fa-stack fa-4x">
+                                <a id="dzoneJava" href='#dzoneJavaBox' 
+                                url="http://feeds.dzone.com/java" style="margin-top:-30px;">
+                                    <img style='height: 100px; background-color:white;' src="https://dz2cdn3.dzone.com/themes/dz20/images/dz-logo-v.svg"/>
+                                </a>
+                            </span>
+                            <h4>
+                                <strong>Dzone <span style="color: #f0ad4e; font-size:25px;">Java</span></strong>
+                            </h4>
+                        </div>
+                    </div>
                 </div>
                 <!-- /.row (nested) -->
             </div>
@@ -216,7 +261,13 @@
         </div>
     </div>
 </div>
-
+<div class="container">
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1 text-center">
+            <div id="dzoneJavaBox"></div>
+        </div>
+    </div>
+</div>
 
 <!-- Footer -->
 <footer>
