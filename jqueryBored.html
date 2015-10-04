@@ -22,6 +22,9 @@
             var cleanBox = function () {
                 $('#hackerNewsBox').empty();
                 $('#stackOverflowBox').empty();
+                $('#dzoneJavaBox').empty();
+                $('#dzoneWebDevBox').empty();
+                $('#redditProgrammingBox').empty();
             };
 
             // Closes the sidebar menu
@@ -108,6 +111,15 @@
                 });
             }
 
+            var getURL = function (url) {
+                return $.ajax({
+                    type: "GET",
+                    dataType: "JSON",
+                    url: url,
+                    cache: true
+                });
+            };
+
             $('#dzoneJava').click(function(){
                 $(loading).addClass('active');
 
@@ -127,6 +139,54 @@
                             }
 
                             showTopStories(topstories[i].link, topstories[i].title, topstories[i].author, "#dzoneJavaBox", i, callback);
+                        }
+                    });
+                })();
+            }); 
+
+            $('#dzoneWebDev').click(function(){
+                $(loading).addClass('active');
+
+                cleanBox();
+
+                var url=$(this).attr('url');
+
+                var getTopStories = (function () {
+                    parseRSS(url).success(function (data) {
+                        topstories = data.responseData.feed.entries;
+
+                        for (var i = 0; i < topstories.length; i++) {
+                            if (i === topstories.length - 1) {
+                                var callback = function () {
+                                    $(loading).removeClass('active');
+                                };
+                            }
+
+                            showTopStories(topstories[i].link, topstories[i].title, topstories[i].author, "#dzoneWebDevBox", i, callback);
+                        }
+                    });
+                })();
+            }); 
+
+            $('#redditProgramming').click(function(){
+                $(loading).addClass('active');
+
+                cleanBox();
+
+                var url=$(this).attr('url');
+
+                var getTopStories = (function () {
+                    parseRSS(url).success(function (data) {
+                        topstories = data.responseData.feed.entries;
+
+                        for (var i = 0; i < topstories.length; i++) {
+                            if (i === topstories.length - 1) {
+                                var callback = function () {
+                                    $(loading).removeClass('active');
+                                };
+                            }
+
+                            showTopStories(topstories[i].link, topstories[i].title, topstories[i].author, "#redditProgrammingBox", i, callback);
                         }
                     });
                 })();
@@ -199,7 +259,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="service-item">
                             <span class="fa-stack fa-4x">
-                            	<a id="hackerNews" href='#hackerNewsBox' nbStories="10"
+                                <a id="hackerNews" href='#hackerNewsBox' nbStories="10"
                                    urlTop="https://hacker-news.firebaseio.com/v0/topstories.json"
                                    urlDetail="https://hacker-news.firebaseio.com/v0/item/">
                                     <img style='height: 100px;'
@@ -214,7 +274,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="service-item">
                             <span class="fa-stack fa-4x">
-                            	<a id="stackOverflow" href='#stackOverflowBox' nbquestions="10"
+                                <a id="stackOverflow" href='#stackOverflowBox' nbquestions="10"
                                    urlTop="https://api.stackexchange.com/2.2/questions/no-answers?order=desc&sort=creation&tagged=java&site=stackoverflow"
                                    style=' text-indent: -999em; display: block; width: 200px; height: 50px; background-image: url("http://cdn.sstatic.net/stackoverflow/img/sprites.svg?v=a7723f5f7e59"),none; background-position: top left; background-repeat: no-repeat; position: relative; top: 40px; left:-40px;'></a>
                             </span>
@@ -233,6 +293,32 @@
                             </span>
                             <h4>
                                 <strong>Dzone <span style="color: #f0ad4e; font-size:25px;">Java</span></strong>
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="service-item">
+                            <span class="fa-stack fa-4x">
+                                <a id="dzoneWebDev" href='#dzoneWebDevBox' 
+                                url="http://feeds.dzone.com/webdev" style="margin-top:-30px;">
+                                    <img style='height: 100px; background-color:white;' src="https://dz2cdn3.dzone.com/themes/dz20/images/dz-logo-v.svg"/>
+                                </a>
+                            </span>
+                            <h4>
+                                <strong>Dzone <span style="color: #f0ad4e; font-size:25px;">WebDev</span></strong>
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="service-item">
+                            <span class="fa-stack fa-4x">
+                                <a id="redditProgramming" href='#redditProgrammingBox' 
+                                url="https://www.reddit.com/r/programming/.rss">
+                                    <img  src="https://b.thumbs.redditmedia.com/2rTE46grzsr-Ll3Q.png"/>
+                                </a>
+                            </span>
+                            <h4>
+                                <strong>Reddit Programming</strong>
                             </h4>
                         </div>
                     </div>
@@ -268,6 +354,21 @@
         </div>
     </div>
 </div>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1 text-center">
+            <div id="dzoneWebDevBox"></div>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1 text-center">
+            <div id="redditProgrammingBox"></div>
+        </div>
+    </div>
+</div>
+
 
 <!-- Footer -->
 <footer>
